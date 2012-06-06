@@ -1,6 +1,53 @@
+include ../includes/headermenu.jade
+
 h2 Order Page
+p time to get your eat on
 
-p this page can only be accessed if you have logged in
+if (typeof(flash) != 'undefined')
+	if flash.error
+		p(style="color:red; size:16px;")
+			#{flash.error}
+	if flash.info
+		p(style="color:green; size:16px;")
+			#{flash.info}
 
-p logout  
-	a(href="/logout") logout
+
+if (typeof(newOrder) != 'undefined')
+	h3 order summary
+	h4 entree #{newOrder[0].entree}
+	h4 side #{newOrder[0].side}
+	h4 order id #{newOrder[0]._id}
+	h4 comments #{newOrder[0].comment}
+
+else
+	form(action="/order", method="post", id="order-form")
+		h3 choose an entree
+		p
+			input(type="radio", name="entree", id="entreeRadios1", value="Chicken", checked="")
+			label chicken
+		p
+			input(type="radio", name="entree", id="entreeRadios2", value="Beef")
+			label beef
+		p
+			input(type="radio", name="entree", id="entreeRadios3", value="Salmon")
+			label salmon
+
+		br
+
+		h3 choose a side
+		p
+			input(type="radio", name="side", id="sideRadios1", value="Brocolli", checked="")
+			label brocolli
+		p
+			input(type="radio", name="side", id="sideRadios2", value="Mac and Cheese")
+			label mac and cheese
+		p
+			input(type="radio", name="side", id="sideRadios3", value="Mashed Potatoes")
+			label mashed potatoes
+		p
+			input(type="textarea", name="comment")
+			label comments
+		p
+			input(type='submit') order
+
+include ../includes/footer.jade

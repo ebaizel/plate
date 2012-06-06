@@ -4,6 +4,9 @@ var Db = require('mongodb').Db,
   Server = require('mongodb').Server,
   BSON = require('mongodb').BSONNative;
 
+// Get the objectID type
+var ObjectID = require('mongodb').ObjectID;
+
 var fs = require('fs');
 var dbname = 'plate';
 
@@ -67,7 +70,7 @@ exports.fetchAccountsForOrg = function(req, nextFn) {
 	});
 }
 
-// Insert into Mongo
+// Insert user into Mongo
 exports.createUser = function(newUser, nextFn) {
 
     // perform the {insert} on the collection and invoke the nextFn when done
@@ -75,18 +78,45 @@ exports.createUser = function(newUser, nextFn) {
 	db.open(function(err, client){
 	    client.createCollection("plateUser", function(err, col) {
 	         client.collection("plateUser", function(err, col) {
-//	             for (var i = 0; i < 100; i++) {
-	                 //col.insert({c:i}, function() {});
 	                 col.insert(newUser, {safe:true}, function (err, result) { 
 						if (err) console.warn(err.message);
-						console.log("^^^ Create User: insert results are " + JSON.stringify(result));
+						console.log("^^^ Created User: insert results are " + JSON.stringify(result));
 	                 	nextFn(err, result); 
 	                 });
-//	             }
 	         });
 	    });
 	});
 }
+
+// Insert order into Mongo
+exports.createOrder = function(newOrder, nextFn) {
+
+    // perform the {insert} on the collection and invoke the nextFn when done
+    var db = new Db(dbname, new Server(host, port, {}), {native_parser:false});
+	db.open(function(err, client){
+	    client.createCollection("order", function(err, col) {
+	         client.collection("order", function(err, col) {
+	                 col.insert(newOrder, {safe:true}, function (err, result) { 
+						if (err) console.warn(err.message);
+						console.log("^^^ Created Order: insert results are " + JSON.stringify(result));
+	                 	nextFn(err, result); 
+	                 });
+	         });
+	    });
+	});
+}
+
+//Fetch the order history of this userId
+exports.getOrderHistory = function(userId, nextFn) {
+	console.log("in getOrderHistory");
+	var queryParams = {};
+	queryParams['userid'] = userId;
+	var optionsString; 
+	require('./getData').runQuery('order', queryParams, optionsString, function(err, results) {
+		nextFn(err, results);
+	});
+}
+
 
 //Fetch the users by this userLogin
 exports.fetchUsersByLogin = function(userLogin, nextFn) {
@@ -101,15 +131,13 @@ exports.fetchUsersByLogin = function(userLogin, nextFn) {
 
 //Fetch a user by userid
 exports.findUserById = function(userId, nextFn) {
-	console.log("@@  In finduserbyID");
 	var queryParams = {};
-	queryParams['_id'] = userId;
+	queryParams['_id'] = new ObjectID(userId);
 	var optionsString; 
 	require('./getData').runQuery('plateUser', queryParams, optionsString, function(err, results) {
 		nextFn(err, results);
 	});
 }
-
 
 //Fetch a user by userid
 exports.findUserByLogin = function(login, nextFn) {

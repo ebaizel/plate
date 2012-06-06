@@ -1,0 +1,16 @@
+include ../includes/headermenu.jade
+
+h2 Order History
+p check out what you've ordered
+
+if (orderHistory)
+	- each order in orderHistory
+		h4 order id #{order._id}
+		h4 entree #{order.entree}
+		h4 side #{order.side}
+		h4 comments #{order.comment}
+		h4 --
+else
+	p you have not made any orders yet
+
+include ../includes/footer.jade

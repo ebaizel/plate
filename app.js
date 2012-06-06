@@ -1,5 +1,7 @@
 var bcrypt = require('bcrypt');
 var everyauth = require('everyauth');
+//var everyauth = require('/Users/emileleon/Documents/workspace/GitHub/everyauth');
+//var everyauth = require('/Users/emileleon/node_modules/everyauth');
 var express = require('express');
 var routes = require('./routes');
 var MongoStore = require('express-session-mongo');
@@ -140,10 +142,12 @@ everyauth.password
   .registerSuccessRedirect('/login'); // Where to redirect to after a successful registration
 
 
+everyauth.everymodule.userPkey = '_id';
+
 everyauth.everymodule
 //  .userPkey('_id')
   .findUserById( function (userId, callback) {
-
+    console.log("()()(  IN FIND BY USER ID of everyauth");
     getData.findUserById(userId, function(err, user) {
       callback(err, user);
     })
@@ -151,10 +155,6 @@ everyauth.everymodule
     // User.findById(userId, callback);
     // callback has the signature, function (err, user) {...}
   });
-
-
-
-
 
 app = module.exports = express.createServer();
 
@@ -172,8 +172,9 @@ app.configure(function(){
   app.use(express.cookieParser());
   app.use(express.session({secret: 'cheese board'}));
 //  app.use(express.session({ store: new MongoStore({ native_parser: false }) }));
-  app.use(app.router);
   app.use(everyauth.middleware());
+  app.use(app.router);
+
 
   app.use(express.static(__dirname + '/public'));
 });
@@ -203,6 +204,31 @@ app.get('/', function(req, res, nextFn){
   res.render('index.jade', {title: 'Plate'});
 });
 
+app.post('/order', function(req, res, nextFn) {
+  console.log('POSTing an order with body: ' + JSON.stringify(req.body));
+
+  var order = {};
+  order.entree = req.body.entree;
+  order['side'] = req.body.side;
+  order.userid = req.session.auth.userId;
+
+  if (req.body.comment) {
+    order.comment = req.body.comment;
+  }
+
+
+  // Create a new order
+  getData.createOrder( order, function (err, newOrder) {
+    if (err) {
+      req.flash('error', 'error occurred and order was *not* placed');        
+      res.render('order.jade', { locals: { flash: req.flash() }});
+    } else {
+      req.flash('info', 'order was posted');
+      res.render('order.jade', { locals: { flash: req.flash() }, newOrder: newOrder });
+    }
+  });
+});
+
 
 app.get('/order', authed, function(req, res, nextFn){
 
@@ -210,7 +236,7 @@ app.get('/order', authed, function(req, res, nextFn){
   for (var k in req['session']) {
       // use hasOwnProperty to filter out keys from the Object.prototype
       if (req['session'].hasOwnProperty(k)) {
-          console.log('key is: ' + k + ', value is: ' + req['session'][k]);
+          console.log('key is: ' + k + ', value is: ' + JSON.stringify(req['session'][k]));
       }
   }
   
@@ -223,6 +249,29 @@ app.get('/order', authed, function(req, res, nextFn){
   }
 
 });
+
+
+app.get('/history', authed, function(req, res, nextFn){
+
+  if ((req.session) && (req.session.auth) && (req.session.auth.loggedIn)) {
+
+    getData.getOrderHistory( req.session.auth.userId, function(err, orderHistory) {
+      if (err) {
+        req.flash('error', 'sorry but order history is unavailable at the moment');
+        res.render('orderHistory.jade', { locals: { flash: req.flash() }});
+      } else {
+        console.log('order history is: ' + JSON.stringify(orderHistory));
+        res.render('orderHistory.jade', { orderHistory: orderHistory });
+      }
+    });
+  } else {
+    res.redirect('/login');
+  }
+
+});
+
+
+
 
 function authed(req, res, nextFn) {
 
