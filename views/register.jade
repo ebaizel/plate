@@ -1,0 +1,23 @@
+h2 Create a Plate account
+- if ('undefined' !== typeof errors && errors.length)
+  ul#errors
+    - each error in errors
+      li.error= error
+form(action='/register', method='post')
+  #firstname
+    label(for='firstName') first name
+    input(type='text', name='firstName', value='yao')
+  #lastname
+    label(for='lastName') last name
+    input(type='text', name='lastName', value='ming')
+  #email
+    label(for=everyauth.password.loginFormFieldName) email
+    input(type='text', name='email')
+  #login
+    label(for=everyauth.password.loginFormFieldName) username
+    input(type='text', name=everyauth.password.loginFormFieldName, value=userParams[everyauth.password.loginFormFieldName])
+  #password
+    label(for=everyauth.password.passwordFormFieldName) password
+    input(type='password', name=everyauth.password.passwordFormFieldName)
+  #submit
+    input(type='submit') Register
