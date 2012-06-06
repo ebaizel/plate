@@ -4,7 +4,7 @@ var everyauth = require('everyauth');
 //var everyauth = require('/Users/emileleon/node_modules/everyauth');
 var express = require('express');
 var routes = require('./routes');
-var MongoStore = require('express-session-mongo');
+//var MongoStore = require('express-session-mongo');
 
 
 everyauth.debug = true;
