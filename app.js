@@ -292,7 +292,7 @@ function authed(req, res, nextFn) {
 }
 
 
-app.listen(1083);
+app.listen(process.env.PORT || 1083);
 console.log("Plate server listening on port %d in %s mode", app.address().port, app.settings.env);
 
 
