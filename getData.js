@@ -16,7 +16,7 @@ var dbname = GLOBAL.mongoDBName;
 
 
 
-var localstr = "mongodb://ebaizel:incoming36@ds033757.mongolab.com:33757/heroku_app5057630";
+var localstr = "mongodb://mongo:r1sky@ds033757.mongolab.com:33757/heroku_app5057630";
 //var localstr = "mongodb://localhost:27017/plate";
 
 // var connect = require('connect');
@@ -42,8 +42,8 @@ exports.runQuery = function(myCollection, query, options, nextFn) {
 
     // perform the {query} on the collection and invoke the nextFn when done
 //    var db = new Db(dbname, new Server(host, port, {}), {native_parser:false});
-	mongo.connect(localstr, {}, function(error, db){
-	    db.open(function(err, db) {
+	mongo.connect(localstr, {}, function(error, database){
+	    database.open(function(err, db) {
 			db.collection(myCollection, function(err, collection) {
 
 				var optionsArray = {};
@@ -101,8 +101,8 @@ exports.createUser = function(newUser, nextFn) {
 
     // perform the {insert} on the collection and invoke the nextFn when done
 //    var db = new Db(dbname, new Server(host, port, {}), {native_parser:false});
-	mongo.connect(localstr, {}, function(error, db){
-		db.open(function(err, client){
+	mongo.connect(localstr, {}, function(error, database){
+		database.open(function(err, client){
 		    client.createCollection("plateUser", function(err, col) {
 		         client.collection("plateUser", function(err, col) {
 		                 col.insert(newUser, {safe:true}, function (err, result) { 
@@ -121,8 +121,8 @@ exports.createOrder = function(newOrder, nextFn) {
 
     // perform the {insert} on the collection and invoke the nextFn when done
 //    var db = new Db(dbname, new Server(host, port, {}), {native_parser:false});
-	mongo.connect(localstr, {}, function(error, db){
-		db.open(function(err, client){
+	mongo.connect(localstr, {}, function(error, database){
+		database.open(function(err, client){
 		    client.createCollection("order", function(err, col) {
 		         client.collection("order", function(err, col) {
 		                 col.insert(newOrder, {safe:true}, function (err, result) { 
