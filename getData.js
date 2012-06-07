@@ -39,11 +39,11 @@ exports.runQuery = function(myCollection, query, options, nextFn) {
 			    	nextFn(err, null);
 			    }
 				cursor.toArray(function(err, docs) {
-				    console.log("found " + docs.length + " documents in " + myCollection);
 				    db.close();
 				    if (err || (docs.length == 0)) {
 				    	nextFn(err, null);
 				    } else {
+   					    console.log("found " + docs.length + " documents in " + myCollection);
 					    var queryResults = [];
 				    	for(var i=0; i<docs.length; i++) {
 							queryResults[queryResults.length] = docs[i];
