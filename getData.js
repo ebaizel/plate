@@ -14,46 +14,71 @@ var host = GLOBAL.mongoHost;
 var port = GLOBAL.mongoPort;
 var dbname = GLOBAL.mongoDBName;
 
+
+
+var mongostr = "mongodb://ebaizel:incoming36@ds033757.mongolab.com:33757/heroku_app5057630";
+var localstr = "mongodb://localhost:27017/plate";
+
+// var connect = require('connect');
+// //var mongo = require('mongodb');
+// var db = null;
+
+// function setupDB() {
+// 	mongo.connect(localstr, {}, function(error, database){
+// 		console.log("connected, db: " + database);
+
+// 		db = database;
+
+// 		database.addListener("error", function(error){
+// 			console.log("Error connecting to MongoLab");
+// 		});
+// 	});
+// };
+
+
+
 //Generic worker function to run a find query
 exports.runQuery = function(myCollection, query, options, nextFn) {
 
     // perform the {query} on the collection and invoke the nextFn when done
-    var db = new Db(dbname, new Server(host, port, {}), {native_parser:false});
-    db.open(function(err, db) {
-		db.collection(myCollection, function(err, collection) {
+//    var db = new Db(dbname, new Server(host, port, {}), {native_parser:false});
+	mongo.connect(localstr, {}, function(error, db){
+	    db.open(function(err, db) {
+			db.collection(myCollection, function(err, collection) {
 
-			var optionsArray = {};
-			if (typeof(options) != 'undefined') {
-				optionsArray = options;
-			} else {
-				optionsArray['limit'] = 100;
-				optionsArray['sort'] = {};
-				optionsArray['sort']['_id']= -1;
-			}
+				var optionsArray = {};
+				if (typeof(options) != 'undefined') {
+					optionsArray = options;
+				} else {
+					optionsArray['limit'] = 100;
+					optionsArray['sort'] = {};
+					optionsArray['sort']['_id']= -1;
+				}
 
-			optionsArray['slaveOk'] = true;
+				optionsArray['slaveOk'] = true;
 
-    		collection.find(query, optionsArray, function (err, cursor){
-		    	if (err) {
-			    	console.log("error is: " + err);
-			    	nextFn(err, null);
-			    }
-				cursor.toArray(function(err, docs) {
-				    db.close();
-				    if (err || (docs.length == 0)) {
+	    		collection.find(query, optionsArray, function (err, cursor){
+			    	if (err) {
+				    	console.log("error is: " + err);
 				    	nextFn(err, null);
-				    } else {
-   					    console.log("found " + docs.length + " documents in " + myCollection);
-					    var queryResults = [];
-				    	for(var i=0; i<docs.length; i++) {
-							queryResults[queryResults.length] = docs[i];
-					    }
-					    nextFn(err, queryResults);
-					}
-				});
-		    });
-		});
-    });
+				    }
+					cursor.toArray(function(err, docs) {
+					    db.close();
+					    if (err || (docs.length == 0)) {
+					    	nextFn(err, null);
+					    } else {
+	   					    console.log("found " + docs.length + " documents in " + myCollection);
+						    var queryResults = [];
+					    	for(var i=0; i<docs.length; i++) {
+								queryResults[queryResults.length] = docs[i];
+						    }
+						    nextFn(err, queryResults);
+						}
+					});
+			    });
+			});
+	    });
+	});
 }
 
 //Fetch the accounts for this orgId
@@ -75,17 +100,19 @@ exports.fetchAccountsForOrg = function(req, nextFn) {
 exports.createUser = function(newUser, nextFn) {
 
     // perform the {insert} on the collection and invoke the nextFn when done
-    var db = new Db(dbname, new Server(host, port, {}), {native_parser:false});
-	db.open(function(err, client){
-	    client.createCollection("plateUser", function(err, col) {
-	         client.collection("plateUser", function(err, col) {
-	                 col.insert(newUser, {safe:true}, function (err, result) { 
-						if (err) console.warn(err.message);
-						console.log("^^^ Created User: insert results are " + JSON.stringify(result));
-	                 	nextFn(err, result); 
-	                 });
-	         });
-	    });
+//    var db = new Db(dbname, new Server(host, port, {}), {native_parser:false});
+	mongo.connect(localstr, {}, function(error, db){
+		db.open(function(err, client){
+		    client.createCollection("plateUser", function(err, col) {
+		         client.collection("plateUser", function(err, col) {
+		                 col.insert(newUser, {safe:true}, function (err, result) { 
+							if (err) console.warn(err.message);
+							console.log("^^^ Created User: insert results are " + JSON.stringify(result));
+		                 	nextFn(err, result); 
+		                 });
+		         });
+		    });
+		});
 	});
 }
 
@@ -93,17 +120,19 @@ exports.createUser = function(newUser, nextFn) {
 exports.createOrder = function(newOrder, nextFn) {
 
     // perform the {insert} on the collection and invoke the nextFn when done
-    var db = new Db(dbname, new Server(host, port, {}), {native_parser:false});
-	db.open(function(err, client){
-	    client.createCollection("order", function(err, col) {
-	         client.collection("order", function(err, col) {
-	                 col.insert(newOrder, {safe:true}, function (err, result) { 
-						if (err) console.warn(err.message);
-						console.log("^^^ Created Order: insert results are " + JSON.stringify(result));
-	                 	nextFn(err, result); 
-	                 });
-	         });
-	    });
+//    var db = new Db(dbname, new Server(host, port, {}), {native_parser:false});
+	mongo.connect(localstr, {}, function(error, db){
+		db.open(function(err, client){
+		    client.createCollection("order", function(err, col) {
+		         client.collection("order", function(err, col) {
+		                 col.insert(newOrder, {safe:true}, function (err, result) { 
+							if (err) console.warn(err.message);
+							console.log("^^^ Created Order: insert results are " + JSON.stringify(result));
+		                 	nextFn(err, result); 
+		                 });
+		         });
+		    });
+		});
 	});
 }
 
