@@ -183,12 +183,14 @@ app.configure('development', function(){
   app.use(express.errorHandler({ dumpExceptions: true, showStack: true })); 
   GLOBAL.mongoHost = 'localhost';
   GLOBAL.mongoPort = 27017;
+  GLOBAL.mongoDBName = 'plate';
 });
 
 app.configure('production', function(){
   app.use(express.errorHandler()); 
-  GLOBAL.mongoHost = '10.162.214.174';
-  GLOBAL.mongoPort = 27017;
+  GLOBAL.mongoHost = 'ds033757.mongolab.com';
+  GLOBAL.mongoPort = 33757;
+  GLOBAL.mongoDBName = 'heroku_app5057630';
 });
 
 // getData uses configs so must come after above app.configure

@@ -8,10 +8,11 @@ var Db = require('mongodb').Db,
 var ObjectID = require('mongodb').ObjectID;
 
 var fs = require('fs');
-var dbname = 'plate';
+//var dbname = 'plate';
 
 var host = GLOBAL.mongoHost;
 var port = GLOBAL.mongoPort;
+var dbname = GLOBAL.mongoDBName;
 
 //Generic worker function to run a find query
 exports.runQuery = function(myCollection, query, options, nextFn) {
