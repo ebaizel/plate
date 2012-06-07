@@ -2,12 +2,15 @@
     "name": "application-name"
   , "version": "0.0.1"
   , "private": true
+  , "engines": {
+  	"node" : "0.6.x",
+  	"npm" : "1.1.x"
+  }
   , "dependencies": {
       "express": "2.5.2"
     , "jade": ">= 0.0.1"
     , "bcrypt": "0.5.0"
     , "everyauth": "0.2.32"
     , "mongodb" : "1.0.2"
-    , "node": " >= 0.6.0"
   }
 }
