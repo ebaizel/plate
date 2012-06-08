@@ -159,6 +159,16 @@ exports.fetchUsersByLogin = function(userLogin, nextFn) {
 	});
 }
 
+//Fetch all users
+exports.fetchAllUsers = function(nextFn) {
+	console.log("in fetchAllUsers");
+	var queryParams;
+	var optionsString; 
+	require('./getData').runQuery('plateUser', queryParams, optionsString, function(err, results) {
+		nextFn(err, results);
+	});
+}
+
 //Fetch a user by userid
 exports.findUserById = function(userId, nextFn) {
 	var queryParams = {};

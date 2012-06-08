@@ -206,6 +206,7 @@ app.get('/', function(req, res, nextFn){
   res.render('index.jade', {title: 'Plate'});
 });
 
+
 app.post('/order', function(req, res, nextFn) {
   console.log('POSTing an order with body: ' + JSON.stringify(req.body));
 
@@ -249,6 +250,21 @@ app.get('/order', authed, function(req, res, nextFn){
     console.log("user is NOT logged in");
     res.redirect('/login');
   }
+
+});
+
+
+app.get('/users', authed, function(req, res, nextFn){
+  console.log("in app get /users");
+  getData.fetchAllUsers(function(err, allUsers) {
+      if (err) {
+        req.flash('error', 'sorry but viewing all users is unavailable at the moment');
+        res.render('users.jade', { locals: { flash: req.flash() }});
+      } else {
+        console.log('uesrs list is: ' + JSON.stringify(allUsers));
+        res.render('users.jade', { users: allUsers });
+      }
+  });
 
 });
 

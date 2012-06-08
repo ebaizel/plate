@@ -1,0 +1,17 @@
+include ../includes/headermenu.jade
+
+h2 Users
+p check out who has signed up
+
+if (users)
+	- each user in users
+		h4 name #{user.name.first} #{user.name.last}
+		h4 email #{user.email}
+		h4 login #{user.login}
+		h4 id #{user._id}
+		h4 created #{user._id.generationTime * 1000}
+		h4 --
+else
+	p there are no users yet
+
+include ../includes/footer.jade
