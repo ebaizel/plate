@@ -16,8 +16,8 @@ var dbname = GLOBAL.mongoDBName;
 
 
 
-var localstr = "mongodb://mongo:r1sky@ds033757.mongolab.com:33757/heroku_app5057630";
-//var localstr = "mongodb://localhost:27017/plate";
+//var localstr = "mongodb://mongo:r1sky@ds033757.mongolab.com:33757/heroku_app5057630";
+var localstr = "mongodb://localhost:27017/plate";
 
 // var connect = require('connect');
 // //var mongo = require('mongodb');
