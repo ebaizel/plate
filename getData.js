@@ -77,7 +77,7 @@ exports.runQuery = function(myCollection, query, options, nextFn) {
 					});
 			    });
 			});
-	    });
+//	    });
 	});
 }
 
@@ -112,7 +112,7 @@ exports.createUser = function(newUser, nextFn) {
 		                 });
 		         });
 		    });
-		});
+//		});
 	});
 }
 
@@ -132,7 +132,7 @@ exports.createOrder = function(newOrder, nextFn) {
 		                 });
 		         });
 		    });
-		});
+//		});
 	});
 }
 
