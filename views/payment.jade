@@ -1,0 +1,13 @@
+include ../includes/headermenu.jade
+
+h2 Payment Testing Page
+p dolla dolla bill y'all
+
+//| = samurai.renderPaymentForm({ redirectUrl: 'http://young-spring-4227.herokuapp.com/payments'});
+//| = JSON.stringify(samurai)
+//| <script>samurai.renderPaymentForm({ redirectUrl: 'http://young-spring-4227.herokuapp.com/payments'});</script>
+//- var payErrors = samurai.renderErrors({ paymentMethod: paymentMethod })
+//p!= payErrors
+//- var payForm = samurai.renderPaymentForm({ redirectUrl: 'http://young-spring-4227.herokuapp.com/payments'})
+- var payForm = samurai.renderPaymentForm({ redirectUrl: 'http://localhost:1083/paymentverification'})
+!= payForm

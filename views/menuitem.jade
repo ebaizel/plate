@@ -1,0 +1,51 @@
+include ../includes/headermenu.jade
+
+h2 Menu Items
+p Manage all the items that are on the menu
+- if ('undefined' !== typeof errors && errors.length)
+  ul#errors
+    - each error in errors
+      li.error= error
+
+- if ('undefined' != typeof menuitem)
+  h4 name #{menuitem.name}
+  h4 type #{menuitem.type}
+  h4 vegetarian? #{menuitem.veg}
+  h4 discontinued? #{menuitem.disc}
+
+- else
+  form(action='/menuitem', method='post')
+    #name
+      label(for='name') name
+      input(type='text', name='name')
+    #description
+      label(for='description') description
+      input(type='text', name='description')
+    #entreeorside
+      h3 entree or side?
+        p
+          input(type="radio", name="entreeorside", id="entreeradio", value="entree", checked="")
+          label entree
+        p
+          input(type="radio", name="entreeorside", id="sideradio", value="side")
+          label side
+    #vegetarian
+      h3 vegetarian?
+        p
+          input(type="radio", name="vegetarian", id="veggieno", value="no", checked="")
+          label no
+        p
+          input(type="radio", name="vegetarian", id="veggieyes", value="yes")
+          label yes
+    #discontinued
+      h3 discontinued?
+        p
+          input(type="radio", name="discontinued", id="discontinuedNo", value="no", checked="")
+          label no
+        p
+          input(type="radio", name="discontinued", id="discontinuedYes", value="yes")
+          label yes
+    #submit
+      input(type='submit') submit
+
+include ../includes/footer.jade

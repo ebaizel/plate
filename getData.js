@@ -14,40 +14,45 @@ var host = GLOBAL.mongoHost;
 var port = GLOBAL.mongoPort;
 var dbname = GLOBAL.mongoDBName;
 
+//var localstr = "mongodb://mongo:r1sky@ds033757.mongolab.com:33757/heroku_app5057630";
+var localstr = "mongodb://localhost:27017/plate";
+//var localstr = GLOBAL.mongoConnString;
 
+// ###  INTERNAL WORKER METHODS
 
-var localstr = "mongodb://mongo:r1sky@ds033757.mongolab.com:33757/heroku_app5057630";
-//var localstr = "mongodb://localhost:27017/plate";
+//Generic function to fetch an object by its ObjectId
+var getObjectById = function(objectId, collection, nextFn) {
+	console.log("in fetchObjectById for objectID " + objectId + " and collection: " + collection);
+	var queryParams = {};
+	queryParams['_id'] = new ObjectID(objectId);
+	runQuery(collection, queryParams, null, function(err, results) {
+		console.log('object retrieved was: ' + JSON.stringify(results));
+		nextFn(err, results);
+	});
+}
 
-// var connect = require('connect');
-// //var mongo = require('mongodb');
-// var db = null;
-
-// function setupDB() {
-// 	mongo.connect(localstr, {}, function(error, database){
-// 		console.log("connected, db: " + database);
-
-// 		db = database;
-
-// 		database.addListener("error", function(error){
-// 			console.log("Error connecting to MongoLab");
-// 		});
-// 	});
-// };
-
+//Generic function to fetch objects based on queryParams and collection
+var getObjectsByQueryParams = function (queryParams, collection, nextFn) {
+	runQuery(collection, queryParams, null, function(err, results) {
+		if (err) nextFn(err, null);
+		console.log("in getObjectsByQueryParams for coll: " + collection + ", the results jsonstringified are " + JSON.stringify(results));
+		nextFn(err, results);
+	});
+};
 
 
 //Generic worker function to run a find query
-exports.runQuery = function(myCollection, query, options, nextFn) {
+var runQuery = function(myCollection, query, options, nextFn) {
 
     // perform the {query} on the collection and invoke the nextFn when done
-//    var db = new Db(dbname, new Server(host, port, {}), {native_parser:false});
+	// var db = new Db(dbname, new Server(host, port, {}), {native_parser:false});
 	mongo.connect(localstr, {}, function(error, db){
-//	    database.open(function(err, db) {
 			db.collection(myCollection, function(err, collection) {
 
 				var optionsArray = {};
-				if (typeof(options) != 'undefined') {
+				//if (typeof(options) != 'undefined') {
+				//	optionsArray = options;
+				if (options) {
 					optionsArray = options;
 				} else {
 					optionsArray['limit'] = 100;
@@ -77,42 +82,25 @@ exports.runQuery = function(myCollection, query, options, nextFn) {
 					});
 			    });
 			});
-//	    });
 	});
 }
 
-//Fetch the accounts for this orgId
-exports.fetchAccountsForOrg = function(req, nextFn) {
+// ## END OF INTERNAL WORKER FUNCTIONS
 
-	var orgId = req.params.orgId;
-	var fromDate;
-	var toDate;
-	
-	var queryParams = {};
-	queryParams['providerOrgId'] = orgId;
-	var optionsString; 
-	require('./getData').runQuery('account', queryParams, optionsString, function(results) {
-		nextFn(results);
-	});
-}
+// ## BEGIN EXPORTED FUNCTIONS
 
 // Insert user into Mongo
 exports.createUser = function(newUser, nextFn) {
 
     // perform the {insert} on the collection and invoke the nextFn when done
-//    var db = new Db(dbname, new Server(host, port, {}), {native_parser:false});
 	mongo.connect(localstr, {}, function(error, client){
-//		database.open(function(err, client){
-		    client.createCollection("plateUser", function(err, col) {
-		         client.collection("plateUser", function(err, col) {
-		                 col.insert(newUser, {safe:true}, function (err, result) { 
-							if (err) console.warn(err.message);
-							console.log("^^^ Created User: insert results are " + JSON.stringify(result));
-		                 	nextFn(err, result); 
-		                 });
-		         });
-		    });
-//		});
+	     client.collection("plateUser", function(err, col) {
+	             col.insert(newUser, {safe:true}, function (err, result) { 
+					if (err) console.warn(err.message);
+					console.log("^^^ Created User: insert results are " + JSON.stringify(result));
+	             	nextFn(err, result); 
+	             });
+	     });
 	});
 }
 
@@ -120,76 +108,63 @@ exports.createUser = function(newUser, nextFn) {
 exports.createOrder = function(newOrder, nextFn) {
 
     // perform the {insert} on the collection and invoke the nextFn when done
-//    var db = new Db(dbname, new Server(host, port, {}), {native_parser:false});
 	mongo.connect(localstr, {}, function(error, client){
-//		database.open(function(err, client){
-		    client.createCollection("order", function(err, col) {
-		         client.collection("order", function(err, col) {
-		                 col.insert(newOrder, {safe:true}, function (err, result) { 
-							if (err) console.warn(err.message);
-							console.log("^^^ Created Order: insert results are " + JSON.stringify(result));
-		                 	nextFn(err, result); 
-		                 });
-		         });
-		    });
-//		});
+	     client.collection("order", function(err, col) {
+	             col.insert(newOrder, {safe:true}, function (err, result) { 
+					if (err) console.warn(err.message);
+					console.log("^^^ Created Order: insert results are " + JSON.stringify(result));
+	             	nextFn(err, result); 
+	             });
+	     });
+	});
+}
+
+// Insert menu item into Mongo
+exports.addMenuItem = function(menuitem, nextFn) {
+	mongo.connect(localstr, {}, function(error, client){
+		client.collection("menuitem", function(err, col) {
+		     col.insert(menuitem, {safe:true}, function (err, result) { 
+				if (err) console.warn(err.message);
+				console.log("^^^ Created Menu Item: insert results are " + JSON.stringify(result));
+		     	nextFn(err, result); 
+		     });
+		});
 	});
 }
 
 //Fetch the order history of this userId
+exports.getMenuItem = function(menuItemId, nextFn) {
+	getObjectById(menuItemId, 'menuitem', nextFn);
+}
+
+//Fetch the order history of this userId
 exports.getOrderHistory = function(userId, nextFn) {
-	console.log("in getOrderHistory");
 	var queryParams = {};
 	queryParams['userid'] = userId;
-	var optionsString; 
-	require('./getData').runQuery('order', queryParams, optionsString, function(err, results) {
-		nextFn(err, results);
-	});
+	getObjectsByQueryParams(queryParams, 'order', nextFn);
 }
 
-
-//Fetch the users by this userLogin
-exports.fetchUsersByLogin = function(userLogin, nextFn) {
-	console.log("in fetchusersbylogin");
-	var queryParams = {};
-	queryParams['login'] = userLogin;
-	var optionsString; 
-	require('./getData').runQuery('plateUser', queryParams, optionsString, function(err, results) {
-		nextFn(err, results);
-	});
-}
+// //Fetch the users by this userLogin
+// exports.fetchUsersByLoginXXX = function(userLogin, nextFn) {
+// 	var queryParams = {};
+// 	queryParams['login'] = userLogin;
+// 	getObjectsByQueryParams(queryParams, 'plateUser', nextFn);
+// }
 
 //Fetch all users
-exports.fetchAllUsers = function(nextFn) {
-	console.log("in fetchAllUsers");
+exports.getAllUsers = function(nextFn) {
 	var queryParams;
-	var optionsString; 
-	require('./getData').runQuery('plateUser', queryParams, optionsString, function(err, results) {
-		nextFn(err, results);
-	});
+	getObjectsByQueryParams(queryParams, 'plateUser', nextFn);
 }
 
 //Fetch a user by userid
 exports.findUserById = function(userId, nextFn) {
-	var queryParams = {};
-	queryParams['_id'] = new ObjectID(userId);
-	var optionsString; 
-	require('./getData').runQuery('plateUser', queryParams, optionsString, function(err, results) {
-		nextFn(err, results);
-	});
+	getObjectById(userId, 'plateUser', nextFn);
 }
 
 //Fetch a user by userid
-exports.findUserByLogin = function(login, nextFn) {
-	
+exports.findUserByEmail = function(login, nextFn) {
 	var queryParams = {};
-	queryParams['login'] = login;
-	var optionsString; 
-	this.runQuery('plateUser', queryParams, optionsString, function(err, results) {
-		if (err) nextFn(err, null);
-
-		console.log("in getdata.finduserbylogin the results are " + results);
-		console.log("in getdata.finduserbylogin the results jsonstringified are " + JSON.stringify(results));
-		nextFn(err, results);
-	});
+	queryParams['email'] = login;
+	getObjectsByQueryParams(queryParams, 'plateUser', nextFn);
 }

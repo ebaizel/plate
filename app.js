@@ -1,167 +1,9 @@
-var bcrypt = require('bcrypt');
-var everyauth = require('everyauth');
-//var everyauth = require('/Users/emileleon/Documents/workspace/GitHub/everyauth');
-//var everyauth = require('/Users/emileleon/node_modules/everyauth');
 var express = require('express');
 var routes = require('./routes');
-//var MongoStore = require('express-session-mongo');
-
-
-everyauth.debug = true;
-
-everyauth.password
-  .getLoginPath('/login') // Uri path to the login page
-  .postLoginPath('/login') // Uri path that your login form POSTs to
-  .loginView('login.jade')
-  .authenticate( function (login, password) {
-      var promise
-        , errors = [];
-      if (!login) errors.push('Missing login.');
-      if (!password) errors.push('Missing password.');
-      if (errors.length) return errors;
-
-      promise = this.Promise();
-
-      //findUser passes an error or user to a callback after finding the
-      //user by login
-      getData.findUserByLogin( login, function (err, user) {
-        if (err) {
-          errors.push(err.message || err);
-          return promise.fulfill(errors);
-        }
-        if (!user) {
-          errors.push('User with login ' + login + ' does not exist.');
-          return promise.fulfill(errors);
-        }
-        //console.log("##  password and user.hash and user are " + password + " and " + user[0].hash + " and " + JSON.stringify(user));
-        bcrypt.compare(password, user[0].hash, function (err, didSucceed) {
-          if (err) {
-            return promise.fail(err);
-            console.log('err during bcrypt password comparison');
-            errors.push('Wrong password.');
-            return promise.fulfill(errors);
-          }
-          if (didSucceed) {
-            console.log("SUCCESS!  password is valid.");
-
-            return promise.fulfill(user[0]);
-          }
-
-          console.log("error passwords are not same");
-          errors.push('Wrong password. Remember, cheaters never win.');
-          return promise.fulfill(errors);
-        });
-      });
-
-      return promise;
-  })
-  .loginSuccessRedirect('/order') // Where to redirect to after a login
-
-    // If login fails, we render the errors via the login view template,
-    // so just make sure your loginView() template incorporates an `errors` local.
-    // See './example/views/login.jade'
-
-  .getRegisterPath('/register') // Uri path to the registration page
-  .postRegisterPath('/register') // The Uri path that your registration form POSTs to
-  .registerView('register.jade')
-  .extractExtraRegistrationParams( function (req) {
-    return {
-        email: req.body.email
-      , name: {
-            first: req.body.firstName
-          , last: req.body.lastName
-        }
-    }
-  })
-  .validateRegistration( function (newUserAttrs) {
-
-    // Validate the registration input
-    // Return undefined, null, or [] if validation succeeds
-    // Return an array of error messages (or Promise promising this array)
-    // if validation fails
-    //
-    // e.g., assuming you define validate with the following signature
-    // var errors = validate(login, password, extraParams);
-    // return errors;
-    //
-    // The `errors` you return show up as an `errors` local in your jade template
-
-    var errors = [];
-    var promise = this.Promise();
-
-    // Make sure the user has their email address and first and last name and password (twice)
-    var email = newUserAttrs.email;
-    var firstName = newUserAttrs.name.first;
-    var lastName = newUserAttrs.name.last;
-    var login = newUserAttrs.login;
-    var password = newUserAttrs.password;
-
-    if (!email || !firstName || !lastName || !login || !password) { 
-      // return an error
-      console.log("incomplete data during validate registration ");
-      console.log(email + firstName + lastName + login + password);
-      errors.push('please complete all fields and try again');
-      return promise.fulfill(errors);
-    }
-
-    // check if user already exists
-    getData.fetchUsersByLogin(newUserAttrs.login, function(err, users) {
-
-      if (!users) {
-        // no users exist with this login; continue
-        console.log("login is available.  create user.");
-        //return promise.fulfill(errors);
-        return promise.fulfill(null);
-      } else {
-        console.log("Error: username " + newUserAttrs.login + " is already taken.");
-        errors.push("User name " + newUserAttrs.login + " is already taken. Please try to be more original.");
-        return promise.fulfill(errors);
-      }
-    });
-
-    return promise;
-
-  })
-  .registerUser( function (newUserAttrs) {
-    var promise = this.Promise()
-      , password = newUserAttrs.password;
-
-    delete newUserAttrs['password']; // Don't store password
-    newUserAttrs.salt = bcrypt.genSaltSync(10);
-    newUserAttrs.hash = bcrypt.hashSync(password, newUserAttrs.salt);
-
-    // Create a new user in your data store
-    getData.createUser( newUserAttrs, function (err, createdUser) {
-      if (err) return promise.fail(err);
-      return promise.fulfill(createdUser[0]);
-    });
-
-    return promise;
-
-  })
-  .registerSuccessRedirect('/login'); // Where to redirect to after a successful registration
-
-
-everyauth.everymodule.userPkey = '_id';
-
-everyauth.everymodule
-//  .userPkey('_id')
-  .findUserById( function (userId, callback) {
-    console.log("()()(  IN FIND BY USER ID of everyauth");
-    getData.findUserById(userId, function(err, user) {
-      callback(err, user);
-    })
-  
-    // User.findById(userId, callback);
-    // callback has the signature, function (err, user) {...}
-  });
+var auth = require('./auth').auth;
+var samurai = require('./payments').samurai;
 
 app = module.exports = express.createServer();
-
-everyauth.helpExpress(app);
-
-//var sessionServer = new Server('127.0.0.1', 27017, { auto_reconnect: true }, {});
-//app.use(expr.session({ store: new MongoStore() }));
 
 // Configuration
 app.configure(function(){
@@ -171,30 +13,36 @@ app.configure(function(){
   app.use(express.methodOverride());
   app.use(express.cookieParser());
   app.use(express.session({secret: 'cheese board'}));
-//  app.use(express.session({ store: new MongoStore({ native_parser: false }) }));
-  app.use(everyauth.middleware());
+  //  var sessionServer = new Server('127.0.0.1', 27017, { auto_reconnect: true }, {});
+  //  app.use(express.session({ store: new MongoStore({ native_parser: false }) }));
+  app.use(auth.middleware());
   app.use(app.router);
-
-
   app.use(express.static(__dirname + '/public'));
 });
 
 app.configure('development', function(){
   app.use(express.errorHandler({ dumpExceptions: true, showStack: true })); 
-  GLOBAL.mongoHost = 'localhost';
-  GLOBAL.mongoPort = 27017;
-  GLOBAL.mongoDBName = 'plate';
+  GLOBAL.mongoConnString = "mongodb://mongo:r1sky@ds033757.mongolab.com:33757/heroku_app5057630";
+  // GLOBAL.mongoConnString = "mongodb://localhost:27017/plate";
+  // GLOBAL.mongoHost = 'localhost';
+  // GLOBAL.mongoPort = 27017;
+  // GLOBAL.mongoDBName = 'plate';
 });
 
 app.configure('production', function(){
-  app.use(express.errorHandler()); 
-  GLOBAL.mongoHost = 'ds033757.mongolab.com';
-  GLOBAL.mongoPort = 33757;
-  GLOBAL.mongoDBName = 'heroku_app5057630';
+  app.use(express.errorHandler());
+  GLOBAL.mongoConnString = "mongodb://mongo:r1sky@ds033757.mongolab.com:33757/heroku_app5057630";
+  // GLOBAL.mongoHost = 'ds033757.mongolab.com';
+  // GLOBAL.mongoPort = 33757;
+  // GLOBAL.mongoDBName = 'heroku_app5057630';
 });
 
 // getData uses configs so must come after above app.configure
 var getData = require('./getData');
+auth.helpExpress(app);
+auth.debug = true;
+
+// ===== ROUTING TABLES =====
 
 app.get('/login', function(req, res, nextFn){
   console.log("in app.get");
@@ -218,7 +66,6 @@ app.post('/order', function(req, res, nextFn) {
   if (req.body.comment) {
     order.comment = req.body.comment;
   }
-
 
   // Create a new order
   getData.createOrder( order, function (err, newOrder) {
@@ -253,20 +100,103 @@ app.get('/order', authed, function(req, res, nextFn){
 
 });
 
+app.get('/payment', authed, function(req, res, nextFn){
+  console.log("in app get /payment");
+  res.render('payment.jade', { samurai: samurai });
+});
+
+app.get('/paymentverification', authed, function(req, res, nextFn){
+  console.log("in app get /paymentverification");
+  var paymentMethodToken = req.query['payment_method_token'];
+  //Add this token to the user's account
+
+
+  //Get this token's details to display them
+  var paymentMethod = samurai.PaymentMethod.find(paymentMethodToken,
+    function(err, paymentMethod) {
+      console.log(paymentMethod.isSensitiveDataValid);  // => true if the credit_card[card_number] passed checksum
+                                                      //    and the cvv (if included) is a number of 3 or 4 digits
+      var paymentMethods = [];
+      paymentMethods[0]= paymentMethod;
+      res.render('paymentmethods.jade', { paymentMethods : paymentMethods });
+  });
+});
 
 app.get('/users', authed, function(req, res, nextFn){
   console.log("in app get /users");
-  getData.fetchAllUsers(function(err, allUsers) {
+  getData.getAllUsers(function(err, allUsers) {
       if (err) {
         req.flash('error', 'sorry but viewing all users is unavailable at the moment');
         res.render('users.jade', { locals: { flash: req.flash() }});
       } else {
-        console.log('uesrs list is: ' + JSON.stringify(allUsers));
+        console.log('users list is: ' + JSON.stringify(allUsers));
         res.render('users.jade', { users: allUsers });
       }
   });
-
 });
+
+app.get('/menu', authed, function(req, res, nextFn){
+  console.log("in app get /menu");
+  var day = req.query['day'];
+  if (!day) {
+    //set day to today
+    day = "20120610";
+  }
+
+  getData.getMenu(function(err, menu) {
+      if (err) {
+        req.flash('error', 'sorry but viewing menu is unavailable at the moment');
+        res.render('menu.jade', { locals: { flash: req.flash() }});
+      } else {
+        console.log('menu is is: ' + JSON.stringify(menu));
+        res.render('users.jade', { menu: menu });
+      }
+  });
+});
+
+app.get('/menuitem/1', function(req, res, nextFn) {
+//  console.log('getting menu item id: ' + itemid);
+  var itemid = '4fd50abccb6abdb30e000001';
+  getData.getMenuItem(itemid, function(err, menuitem) {
+    res.render('menuitem.jade', { locals: { flash: req.flash() }, menuitem: menuitem[0] });      
+  });
+});
+
+app.get('/menuitem', function(req, res, nextFn) {
+  res.render('menuitem.jade', { locals: { flash: req.flash() } });
+});
+
+app.post('/menuitem', function(req, res, nextFn) {
+
+  var menuitem = {};
+  
+  menuitem.name = req.body.name;
+  menuitem.type = req.body.entreeorside;
+  menuitem.veg = req.body.vegetarian;
+  menuitem.disc = req.body.discontinued;
+
+  if (req.body.desc) {
+    menuitem.desc = req.body.desc;
+  }
+
+  if (req.body._id) {
+    menuitem._id = req.body._id;
+  }
+
+  console.log('Adding a new menu item with body: ' + JSON.stringify(menuitem));
+
+  // Create a new order
+  getData.addMenuItem( menuitem, function (err, newOrder) {
+    if (err) {
+      req.flash('error', 'error occurred and menu item was *not* added');        
+      res.render('menuitem.jade', { locals: { flash: req.flash() }});
+    } else {
+      req.flash('info', 'menu item was added');
+      res.render('menuitem.jade', { locals: { flash: req.flash() }, menuitem: menuitem });
+    }
+  });
+});
+
 
 
 app.get('/history', authed, function(req, res, nextFn){
@@ -285,11 +215,10 @@ app.get('/history', authed, function(req, res, nextFn){
   } else {
     res.redirect('/login');
   }
-
 });
 
 
-
+// This is the browser based auth - 401
 
 function authed(req, res, nextFn) {
 

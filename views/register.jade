@@ -6,16 +6,16 @@ h2 Create a Plate account
 form(action='/register', method='post')
   #firstname
     label(for='firstName') first name
-    input(type='text', name='firstName', value='yao')
+    input(type='text', name='firstName')
   #lastname
     label(for='lastName') last name
-    input(type='text', name='lastName', value='ming')
+    input(type='text', name='lastName')
   #email
     label(for=everyauth.password.loginFormFieldName) email
-    input(type='text', name='email')
-  #login
-    label(for=everyauth.password.loginFormFieldName) username
-    input(type='text', name=everyauth.password.loginFormFieldName, value=userParams[everyauth.password.loginFormFieldName])
+    input(type='text', name=everyauth.password.loginFormFieldName)
+  //- #login
+  //-   label(for=everyauth.password.loginFormFieldName) username
+  //-   input(type='text', name=everyauth.password.loginFormFieldName, value=userParams[everyauth.password.loginFormFieldName])
   #password
     label(for=everyauth.password.passwordFormFieldName) password
     input(type='password', name=everyauth.password.passwordFormFieldName)

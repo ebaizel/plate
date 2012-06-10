@@ -1,0 +1,12 @@
+include ../includes/headermenu.jade
+
+h2 Payment Methods
+p manage your credit cards here
+
+if (paymentMethods)
+	- each paymentMethod in paymentMethods
+		!= JSON.stringify(paymentMethod)
+else
+	p you have not entered any credit cards yet
+
+include ../includes/footer.jade
