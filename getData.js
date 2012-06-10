@@ -85,51 +85,36 @@ var runQuery = function(myCollection, query, options, nextFn) {
 	});
 }
 
+var createDocument = function (newDoc, collection, nextFn) {
+    // perform the {insert} on the collection and invoke the nextFn when done
+	mongo.connect(localstr, {}, function(error, client){
+	     client.collection(collection, function(err, col) {
+	             col.insert(newDoc, {safe:true}, function (err, result) { 
+					if (err) console.warn(err.message);
+					console.log("Created " + collection + ": insert results are " + JSON.stringify(result));
+	             	nextFn(err, result); 
+	             });
+	     });
+	});
+}
+
 // ## END OF INTERNAL WORKER FUNCTIONS
 
 // ## BEGIN EXPORTED FUNCTIONS
 
 // Insert user into Mongo
 exports.createUser = function(newUser, nextFn) {
-
-    // perform the {insert} on the collection and invoke the nextFn when done
-	mongo.connect(localstr, {}, function(error, client){
-	     client.collection("plateUser", function(err, col) {
-	             col.insert(newUser, {safe:true}, function (err, result) { 
-					if (err) console.warn(err.message);
-					console.log("^^^ Created User: insert results are " + JSON.stringify(result));
-	             	nextFn(err, result); 
-	             });
-	     });
-	});
+	createDocument(newUser, 'plateUser', nextFn);
 }
 
 // Insert order into Mongo
 exports.createOrder = function(newOrder, nextFn) {
-
-    // perform the {insert} on the collection and invoke the nextFn when done
-	mongo.connect(localstr, {}, function(error, client){
-	     client.collection("order", function(err, col) {
-	             col.insert(newOrder, {safe:true}, function (err, result) { 
-					if (err) console.warn(err.message);
-					console.log("^^^ Created Order: insert results are " + JSON.stringify(result));
-	             	nextFn(err, result); 
-	             });
-	     });
-	});
+	createDocument(newOrder, 'order', nextFn);
 }
 
 // Insert menu item into Mongo
 exports.addMenuItem = function(menuitem, nextFn) {
-	mongo.connect(localstr, {}, function(error, client){
-		client.collection("menuitem", function(err, col) {
-		     col.insert(menuitem, {safe:true}, function (err, result) { 
-				if (err) console.warn(err.message);
-				console.log("^^^ Created Menu Item: insert results are " + JSON.stringify(result));
-		     	nextFn(err, result); 
-		     });
-		});
-	});
+	createDocument(menuitem, 'menuitem', nextFn);
 }
 
 //Fetch the order history of this userId
@@ -144,12 +129,12 @@ exports.getOrderHistory = function(userId, nextFn) {
 	getObjectsByQueryParams(queryParams, 'order', nextFn);
 }
 
-// //Fetch the users by this userLogin
-// exports.fetchUsersByLoginXXX = function(userLogin, nextFn) {
-// 	var queryParams = {};
-// 	queryParams['login'] = userLogin;
-// 	getObjectsByQueryParams(queryParams, 'plateUser', nextFn);
-// }
+//Get the users by this userLogin
+exports.fetchUsersByLogin = function(userLogin, nextFn) {
+	var queryParams = {};
+	queryParams['login'] = userLogin;
+	getObjectsByQueryParams(queryParams, 'plateUser', nextFn);
+}
 
 //Fetch all users
 exports.getAllUsers = function(nextFn) {
