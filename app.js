@@ -137,22 +137,35 @@ app.get('/users', authed, function(req, res, nextFn){
 
 app.get('/menu', authed, function(req, res, nextFn){
   console.log("in app get /menu");
-  var day = req.query['day'];
+  // Display a grid of days for which to view the menu
+  res.render('menu.jade', { });
+});
+
+
+app.get('/menu/:day', authed, function(req, res, nextFn){
+  console.log("in app get /menu/:day");
+//  var day = req.query['day'];
+  var day = req.params.day;
   if (!day) {
     //set day to today
     day = "20120610";
   }
 
-  getData.getMenu(function(err, menu) {
-      if (err) {
-        req.flash('error', 'sorry but viewing menu is unavailable at the moment');
-        res.render('menu.jade', { locals: { flash: req.flash() }});
-      } else {
-        console.log('menu is is: ' + JSON.stringify(menu));
-        res.render('users.jade', { menu: menu });
-      }
+  // get all the menu items
+  getData.getAllMenuItems(false, function(err, menuItems) {
+    getData.getMenu(day, function(err, menu) {
+        if (err) {
+          req.flash('error', 'sorry but viewing menu is unavailable at the moment');
+          res.render('menu.jade', { locals: { flash: req.flash() }});
+        } else {
+          console.log('menu is is: ' + JSON.stringify(menu));
+          res.render('menu.jade', { menu: menu, menuItems: menuItems });
+        }
+    });
   });
 });
+
+
 
 app.get('/menuitem/1', function(req, res, nextFn) {
 //  console.log('getting menu item id: ' + itemid);

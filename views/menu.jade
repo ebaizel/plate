@@ -7,4 +7,33 @@ p Manage the menu, one day at a time
     - each error in errors
       li.error= error
 
+p choose a day
+a(href='/menu/20120625') 20120625 
+a(href='/menu/20120624') 20120624 
+a(href='/menu/20120623') 20120623 
+a(href='/menu/20120622') 20120622 
+a(href='/menu/20120621') 20120621 
+
+- if ('undefined' != typeof menuItems)
+  table
+    thead
+      tr 
+        th name
+        th type
+        th veg
+        th # servings
+        th
+    tbody
+    - each menuItem in menuItems
+      tr
+        td
+          #{menuItem.name}
+        td
+          #{menuItem.type}
+        td
+          #{menuItem.veg}
+        td
+          input(type='text')
+        td
+
 include ../includes/footer.jade

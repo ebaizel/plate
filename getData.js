@@ -31,9 +31,19 @@ var getObjectById = function(objectId, collection, nextFn) {
 	});
 }
 
-//Generic function to fetch objects based on queryParams and collection
-var getObjectsByQueryParams = function (queryParams, collection, nextFn) {
-	runQuery(collection, queryParams, null, function(err, results) {
+// //Generic function to fetch objects based on queryParams and collection
+// var getObjectsByQueryParams = function (queryParams, collection, nextFn) {
+// 	getObjectsByQueryParams(queryParams, null, collection, nextFn);
+// 	// runQuery(collection, queryParams, null, function(err, results) {
+// 	// 	if (err) nextFn(err, null);
+// 	// 	console.log("in getObjectsByQueryParams for coll: " + collection + ", the results jsonstringified are " + JSON.stringify(results));
+// 	// 	nextFn(err, results);
+// 	// });
+// };
+
+//Generic function to fetch objects based on queryParams and collection and options
+var getObjectsByQueryParams = function (queryParams, options, collection, nextFn) {
+	runQuery(collection, queryParams, options, function(err, results) {
 		if (err) nextFn(err, null);
 		console.log("in getObjectsByQueryParams for coll: " + collection + ", the results jsonstringified are " + JSON.stringify(results));
 		nextFn(err, results);
@@ -117,29 +127,56 @@ exports.addMenuItem = function(menuitem, nextFn) {
 	createDocument(menuitem, 'menuitem', nextFn);
 }
 
-//Fetch the order history of this userId
+//Fetch a menu item by its id
 exports.getMenuItem = function(menuItemId, nextFn) {
 	getObjectById(menuItemId, 'menuitem', nextFn);
+}
+
+//Fetch all menu items; flag for getting unavailable ones; default false
+exports.getAllMenuItems = function(includeUnavailableItems, type, nextFn) {
+	var queryParams = {};
+	if (!includeUnavailableItems) {
+		queryParams['disc'] = {};
+		queryParams['disc']['$ne'] = "yes";
+	}
+
+	if (type) {
+		queryParams['type'] = type;
+	}
+
+	var optionsArray = {};
+	optionsArray['sort'] = {};
+	optionsArray['sort']['type']= 1;
+	optionsArray['sort']['veg']= 1;
+
+	getObjectsByQueryParams(queryParams, optionsArray, 'menuitem', nextFn); 
+}
+
+//Fetch the menu for the passed in day
+exports.getMenu = function(day, nextFn) {
+	var queryParams = {};
+	queryParams['day'] = day;
+	getObjectsByQueryParams(queryParams, null, 'menu', nextFn);
 }
 
 //Fetch the order history of this userId
 exports.getOrderHistory = function(userId, nextFn) {
 	var queryParams = {};
 	queryParams['userid'] = userId;
-	getObjectsByQueryParams(queryParams, 'order', nextFn);
+	getObjectsByQueryParams(queryParams, null, 'order', nextFn);
 }
 
 //Get the users by this userLogin
 exports.fetchUsersByLogin = function(userLogin, nextFn) {
 	var queryParams = {};
 	queryParams['login'] = userLogin;
-	getObjectsByQueryParams(queryParams, 'plateUser', nextFn);
+	getObjectsByQueryParams(queryParams, null, 'plateUser', nextFn);
 }
 
 //Fetch all users
 exports.getAllUsers = function(nextFn) {
 	var queryParams;
-	getObjectsByQueryParams(queryParams, 'plateUser', nextFn);
+	getObjectsByQueryParams(queryParams, null, 'plateUser', nextFn);
 }
 
 //Fetch a user by userid
@@ -151,5 +188,5 @@ exports.findUserById = function(userId, nextFn) {
 exports.findUserByEmail = function(login, nextFn) {
 	var queryParams = {};
 	queryParams['email'] = login;
-	getObjectsByQueryParams(queryParams, 'plateUser', nextFn);
+	getObjectsByQueryParams(queryParams, null, 'plateUser', nextFn);
 }
